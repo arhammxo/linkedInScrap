@@ -7,7 +7,7 @@ def run_scraper():
     print(f"Starting job scraper at {datetime.datetime.now()}")
     try:
         # Run the scraper
-        subprocess.run(['python', 'fin.py'], check=True)
+        subprocess.run(['python', 'scrap_and_clean.py'], check=True)
         # Run the analysis
         subprocess.run(['python', 'analysis.py'], check=True)
         print("Scraping and analysis completed successfully")

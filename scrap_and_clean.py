@@ -67,7 +67,7 @@ for job_id in id_list:
     
     # Send a GET request to the job URL and parse the reponse
     job_response = requests.get(job_url)
-    print(job_response.status_code)
+    print(f"Response code for job ID: {job_id} is {job_response.status_code}")
     job_soup = BeautifulSoup(job_response.text, "html.parser")
     
      # Create a dictionary to store job details
@@ -224,12 +224,15 @@ programming_counts = jobs_df['programming_keywords'].explode().value_counts()
 print("\nMost common programming languages:")
 print(programming_counts)
 
-# Remove rows that are completely empty or have only '<25' in 'num_applications'
+# More thorough data cleaning before saving
 jobs_df = jobs_df.dropna(how='all')  # Drop rows where all elements are NaN
-jobs_df = jobs_df[~((jobs_df.isna() | (jobs_df == '<25')).all(axis=1))]
 
-# Additional check to remove rows where 'num_applications' is '<25' and all other fields are NaN or empty
-jobs_df = jobs_df[~((jobs_df['num_applications'] == '<25') & (jobs_df.drop(columns=['num_applications']).isna().all(axis=1)))]
+# Remove rows that have insufficient data (e.g. only num_applications)
+min_required_fields = ['job_title', 'company_name', 'location']  # Add essential fields
+jobs_df = jobs_df.dropna(subset=min_required_fields, how='all')
+
+# Additional validation - ensure at least some content exists
+jobs_df = jobs_df[jobs_df.astype(str).apply(lambda x: x.str.strip().str.len() > 0).any(axis=1)]
 
 # Save the enriched dataset
 jobs_df.to_csv('enriched_jobs.csv', index=False)
