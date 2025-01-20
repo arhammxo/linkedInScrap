@@ -1,0 +1,9 @@
+flask
+pandas
+plotly
+apscheduler
+beautifulsoup4
+requests
+nltk
+scikit-learn
+statsmodels
