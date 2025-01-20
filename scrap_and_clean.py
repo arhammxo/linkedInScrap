@@ -1,7 +1,6 @@
 #Import dependencies
 import requests
 from bs4 import BeautifulSoup
-import random
 import pandas as pd
 
 title = ""  # Job title
@@ -12,7 +11,7 @@ start = 0  # Starting point for pagination
 id_list = []
 
 # Loop through multiple pages (e.g., first 10 pages = 250 jobs)
-for page in range(3):  # Adjust this number to get more or fewer pages
+for page in range(20):  # Adjust this number to get more or fewer pages
     start = page * 25  # Each page has 25 jobs
     
     # Construct the URL for LinkedIn job search with updated start parameter
@@ -228,6 +227,9 @@ print(programming_counts)
 # Remove rows that are completely empty or have only '<25' in 'num_applications'
 jobs_df = jobs_df.dropna(how='all')  # Drop rows where all elements are NaN
 jobs_df = jobs_df[~((jobs_df.isna() | (jobs_df == '<25')).all(axis=1))]
+
+# Additional check to remove rows where 'num_applications' is '<25' and all other fields are NaN or empty
+jobs_df = jobs_df[~((jobs_df['num_applications'] == '<25') & (jobs_df.drop(columns=['num_applications']).isna().all(axis=1)))]
 
 # Save the enriched dataset
 jobs_df.to_csv('enriched_jobs.csv', index=False)
