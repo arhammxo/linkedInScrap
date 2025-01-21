@@ -4,14 +4,16 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 title = ""  # Job title
-location = ""  # Job location
+location = "India"  # Job location
 start = 0  # Starting point for pagination
 
 # Initialize an empty list to store all job IDs
 id_list = []
+target_jobs = 250
+page = 0
 
-# Loop through multiple pages (e.g., first 10 pages = 250 jobs)
-for page in range(20):  # Adjust this number to get more or fewer pages
+# Loop until we get desired number of valid jobs
+while len(id_list) < target_jobs:
     start = page * 25  # Each page has 25 jobs
     
     # Construct the URL for LinkedIn job search with updated start parameter
@@ -23,6 +25,7 @@ for page in range(20):  # Adjust this number to get more or fewer pages
     # Only process pages with successful responses
     if response.status_code != 200:
         print(f"Failed to fetch page {page + 1} - Status code: {response.status_code}")
+        page += 1
         continue
     
     # Get the HTML, parse the response and find all list items(jobs postings)
@@ -37,16 +40,19 @@ for page in range(20):  # Adjust this number to get more or fewer pages
         
     # Iterate through job postings to find job ids
     for job in page_jobs:
+        if len(id_list) >= target_jobs:
+            break
+            
         try:
             base_card_div = job.find("div", {"class": "base-card"})
             job_id = base_card_div.get("data-entity-urn").split(":")[3]
-            print(f"Found job ID: {job_id} on page {page + 1}")
             
             # Get individual job details and verify response code
             job_url = f"https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{job_id}"
             job_response = requests.get(job_url)
             
             if job_response.status_code == 200:
+                print(f"Found valid job ID: {job_id} on page {page + 1} ({len(id_list) + 1}/{target_jobs})")
                 id_list.append(job_id)
             else:
                 print(f"Skipping job {job_id} - Status code: {job_response.status_code}")
@@ -54,6 +60,8 @@ for page in range(20):  # Adjust this number to get more or fewer pages
         except Exception as e:
             print(f"Error processing job on page {page + 1}: {str(e)}")
             continue
+    
+    page += 1
 
 print(f"Total valid jobs found: {len(id_list)}")
 
